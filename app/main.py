@@ -1,3 +1,5 @@
+import io
+import boto3
 import joblib
 import numpy as np
 import pandas as pd
@@ -8,6 +10,13 @@ from fastapi.responses import FileResponse
 
 from .schema import StudentInput
 
+
+S3_BUCKET = "student-risk-predictor-models"
+S3_KEY    = "gradient_boosting"
+CLASS_LABELS = ["At Risk", "Satisfactory", "Excellent"]
+AT_RISK_THRESHOLD = 0.41
+
+
 app = FastAPI(title="Student Performance Risk Predictor")
 
 app.add_middleware(
@@ -17,14 +26,42 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load model once at startup — not on every request
-model = joblib.load('app/ml_models/gradient_boosting')
 
-# Class labels in order
-CLASS_LABELS = ["At Risk", "Satisfactory", "Excellent"]
+# Load model from S3 at startup
+s3 = boto3.client("s3")
+buffer = io.BytesIO()
+s3.download_fileobj(S3_BUCKET, S3_KEY, buffer)
+buffer.seek(0)
+model = joblib.load(buffer)
 
-AT_RISK_THRESHOLD = 0.41
 
+MODEL_METRICS = {
+    "model":           "Gradient Boosting + GridSearchCV",
+    "dataset":         "Merged student-por + student-mat",
+    "feature_selection": "6 low-importance features dropped",
+    "threshold":       AT_RISK_THRESHOLD,
+    "accuracy":        0.91,
+    "macro_f1":        0.90,
+    "macro_precision": 0.89,
+    "macro_recall":    0.91,
+    "per_class": {
+        "At Risk": {
+            "precision": 0.79,
+            "recall":    0.89,
+            "f1":        0.84
+        },
+        "Satisfactory": {
+            "precision": 0.96,
+            "recall":    0.92,
+            "f1":        0.94
+        },
+        "Excellent": {
+            "precision": 0.93,
+            "recall":    0.93,
+            "f1":        0.93
+        }
+    }
+}
 
 def engineer_features(data: StudentInput) -> pd.DataFrame:
     """Compute the 4 engineered features and return a single-row DataFrame."""
@@ -48,6 +85,10 @@ def engineer_features(data: StudentInput) -> pd.DataFrame:
         "absence_grade_interaction": data.absences * (g1 + g2),
     }])
 
+
+@app.get("/metrics")
+def get_metrics():
+    return MODEL_METRICS
 
 @app.post("/predict")
 def predict(data: StudentInput):

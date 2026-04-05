@@ -1,1030 +1,901 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Student Performance Risk Predictor</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-
-      :root {
-        --bg: #f5f2ec;
-        --surface: #ffffff;
-        --surface-2: #f0ece4;
-        --border: #ddd8cf;
-        --border-dark: #c8c2b6;
-        --text: #1a1814;
-        --text-2: #6b6560;
-        --text-3: #9e9891;
-        --accent: #2d5a3d;
-        --accent-light: #e8f0eb;
-        --accent-mid: #4a8c61;
-        --warn: #7a3a1e;
-        --warn-light: #f5e8e2;
-        --warn-mid: #c4582a;
-        --neutral: #3a4a5c;
-        --neutral-light: #e5eaf0;
-        --font-serif: "DM Serif Display", Georgia, serif;
-        --font-sans: "DM Sans", sans-serif;
-        --font-mono: "DM Mono", monospace;
-        --radius: 10px;
-        --radius-lg: 16px;
-        --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.04);
-      }
-
-      body {
-        background: var(--bg);
-        font-family: var(--font-sans);
-        font-size: 14px;
-        color: var(--text);
-        min-height: 100vh;
-        line-height: 1.6;
-      }
-
-      /* ── Header ── */
-      header {
-        background: var(--surface);
-        border-bottom: 1px solid var(--border);
-        padding: 18px 40px;
-        display: flex;
-        align-items: baseline;
-        gap: 16px;
-      }
-
-      .header-title {
-        font-family: var(--font-serif);
-        font-size: 20px;
-        color: var(--text);
-        letter-spacing: -0.01em;
-      }
-
-      .header-tag {
-        font-family: var(--font-mono);
-        font-size: 10px;
-        letter-spacing: 0.1em;
-        color: var(--text-3);
-        text-transform: uppercase;
-        border: 1px solid var(--border);
-        padding: 2px 8px;
-        border-radius: 4px;
-        background: var(--surface-2);
-      }
-
-      /* ── Layout ── */
-      .layout {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0;
-        min-height: calc(100vh - 61px);
-      }
-
-      /* ── Left panel — form ── */
-      .panel-form {
-        padding: 36px 40px;
-        border-right: 1px solid var(--border);
-        overflow-y: auto;
-      }
-
-      .panel-label {
-        font-family: var(--font-mono);
-        font-size: 10px;
-        letter-spacing: 0.12em;
-        color: var(--text-3);
-        text-transform: uppercase;
-        margin-bottom: 20px;
-      }
-
-      /* Field groups */
-      .field-group {
-        margin-bottom: 10px;
-      }
-
-      .field-label {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        margin-bottom: 5px;
-      }
-
-      .field-name {
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--text);
-      }
-
-      .field-range {
-        font-family: var(--font-mono);
-        font-size: 10px;
-        color: var(--text-3);
-      }
-
-      .field-desc {
-        font-size: 12px;
-        color: var(--text-2);
-        margin-bottom: 6px;
-        line-height: 1.45;
-      }
-
-      /* Inputs */
-      input[type="number"],
-      select {
-        width: 100%;
-        height: 38px;
-        padding: 0 12px;
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        background: var(--surface);
-        font-family: var(--font-sans);
-        font-size: 13px;
-        color: var(--text);
-        transition:
-          border-color 0.15s,
-          box-shadow 0.15s;
-        appearance: none;
-        -webkit-appearance: none;
-        outline: none;
-      }
-
-      input[type="number"]:focus,
-      select:focus {
-        border-color: var(--accent-mid);
-        box-shadow: 0 0 0 3px rgba(74, 140, 97, 0.12);
-      }
-
-      input[type="number"].error,
-      select.error {
-        border-color: var(--warn-mid);
-        box-shadow: 0 0 0 3px rgba(196, 88, 42, 0.1);
-      }
-
-      .error-msg {
-        font-size: 11px;
-        color: var(--warn-mid);
-        margin-top: 4px;
-        display: none;
-      }
-
-      .error-msg.visible {
-        display: block;
-      }
-
-      /* Select wrapper for custom arrow */
-      .select-wrap {
-        position: relative;
-      }
-      .select-wrap::after {
-        content: "";
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 0;
-        height: 0;
-        border-left: 4px solid transparent;
-        border-right: 4px solid transparent;
-        border-top: 5px solid var(--text-3);
-        pointer-events: none;
-      }
-      .select-wrap select {
-        padding-right: 32px;
-        cursor: pointer;
-      }
-
-      /* Section divider */
-      .section-title {
-        font-family: var(--font-serif);
-        font-size: 15px;
-        color: var(--text);
-        margin: 22px 0 14px;
-        padding-bottom: 8px;
-        border-bottom: 1px solid var(--border);
-      }
-
-      /* Two-col grid for compact fields */
-      .field-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
-
-      /* Submit button */
-      .btn-predict {
-        width: 100%;
-        height: 46px;
-        margin-top: 24px;
-        background: var(--accent);
-        color: #fff;
-        border: none;
-        border-radius: var(--radius);
-        font-family: var(--font-sans);
-        font-size: 14px;
-        font-weight: 500;
-        letter-spacing: 0.01em;
-        cursor: pointer;
-        transition:
-          background 0.15s,
-          transform 0.1s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-      }
-
-      .btn-predict:hover {
-        background: #234832;
-      }
-      .btn-predict:active {
-        transform: scale(0.99);
-      }
-      .btn-predict:disabled {
-        background: var(--border-dark);
-        cursor: not-allowed;
-        transform: none;
-      }
-
-      .spinner {
-        width: 16px;
-        height: 16px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-top-color: #fff;
-        border-radius: 50%;
-        animation: spin 0.7s linear infinite;
-        display: none;
-      }
-      .btn-predict.loading .spinner {
-        display: block;
-      }
-      .btn-predict.loading .btn-text {
-        opacity: 0.7;
-      }
-
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      /* ── Right panel — output ── */
-      .panel-output {
-        padding: 36px 40px;
-        display: flex;
-        flex-direction: column;
-      }
-
-      /* Empty state */
-      .empty-state {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        gap: 12px;
-        opacity: 1;
-        transition: opacity 0.3s;
-      }
-
-      .empty-state.hidden {
-        display: none;
-      }
-
-      .empty-icon {
-        width: 56px;
-        height: 56px;
-        border: 1.5px dashed var(--border-dark);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-        color: var(--text-3);
-      }
-
-      .empty-title {
-        font-family: var(--font-serif);
-        font-size: 18px;
-        color: var(--text-2);
-      }
-
-      .empty-sub {
-        font-size: 13px;
-        color: var(--text-3);
-        max-width: 240px;
-      }
-
-      /* Result card */
-      .result-card {
-        display: none;
-        flex-direction: column;
-        gap: 20px;
-        animation: fadeUp 0.35s ease;
-      }
-
-      .result-card.visible {
-        display: flex;
-      }
-
-      @keyframes fadeUp {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      /* Risk badge */
-      .risk-badge {
-        padding: 20px 24px;
-        border-radius: var(--radius-lg);
-        border: 1px solid;
-      }
-
-      .risk-badge.at-risk {
-        background: var(--warn-light);
-        border-color: #e0b8a8;
-      }
-
-      .risk-badge.satisfactory {
-        background: var(--neutral-light);
-        border-color: #b8c8d8;
-      }
-
-      .risk-badge.excellent {
-        background: var(--accent-light);
-        border-color: #b0ccb8;
-      }
-
-      .badge-label {
-        font-family: var(--font-mono);
-        font-size: 10px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        margin-bottom: 6px;
-      }
-
-      .at-risk .badge-label {
-        color: var(--warn-mid);
-      }
-      .satisfactory .badge-label {
-        color: var(--neutral);
-      }
-      .excellent .badge-label {
-        color: var(--accent);
-      }
-
-      .badge-prediction {
-        font-family: var(--font-serif);
-        font-size: 32px;
-        line-height: 1.1;
-        margin-bottom: 8px;
-      }
-
-      .at-risk .badge-prediction {
-        color: var(--warn);
-      }
-      .satisfactory .badge-prediction {
-        color: var(--neutral);
-      }
-      .excellent .badge-prediction {
-        color: var(--accent);
-      }
-
-      .badge-description {
-        font-size: 12px;
-        line-height: 1.5;
-      }
-
-      .at-risk .badge-description {
-        color: var(--warn-mid);
-      }
-      .satisfactory .badge-description {
-        color: var(--neutral);
-      }
-      .excellent .badge-description {
-        color: var(--accent);
-      }
-
-      /* Probabilities */
-      .prob-section {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-lg);
-        padding: 18px 20px;
-      }
-
-      .prob-title {
-        font-size: 12px;
-        font-weight: 500;
-        color: var(--text-2);
-        margin-bottom: 14px;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        font-family: var(--font-mono);
-      }
-
-      .prob-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 12px;
-      }
-
-      .prob-row:last-child {
-        margin-bottom: 0;
-      }
-
-      .prob-label {
-        font-size: 12px;
-        font-weight: 500;
-        width: 96px;
-        flex-shrink: 0;
-        color: var(--text);
-      }
-
-      .prob-bar-track {
-        flex: 1;
-        height: 6px;
-        background: var(--surface-2);
-        border-radius: 3px;
-        overflow: hidden;
-      }
-
-      .prob-bar-fill {
-        height: 100%;
-        border-radius: 3px;
-        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        width: 0%;
-      }
-
-      .prob-bar-fill.at-risk {
-        background: var(--warn-mid);
-      }
-      .prob-bar-fill.satisfactory {
-        background: var(--neutral);
-      }
-      .prob-bar-fill.excellent {
-        background: var(--accent-mid);
-      }
-
-      .prob-value {
-        font-family: var(--font-mono);
-        font-size: 12px;
-        color: var(--text-2);
-        width: 40px;
-        text-align: right;
-        flex-shrink: 0;
-      }
-
-      /* Disclaimer */
-      .disclaimer {
-        font-size: 11px;
-        color: var(--text-3);
-        line-height: 1.5;
-        padding: 12px 16px;
-        background: var(--surface-2);
-        border-radius: var(--radius);
-        border: 1px solid var(--border);
-      }
-
-      /* Error toast */
-      .toast {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        background: #2a1a1a;
-        color: #f5d5d5;
-        font-size: 13px;
-        padding: 12px 18px;
-        border-radius: var(--radius);
-        display: none;
-        animation: fadeUp 0.25s ease;
-        z-index: 100;
-        max-width: 320px;
-      }
-
-      .toast.visible {
-        display: block;
-      }
-
-      @media (max-width: 768px) {
-        .layout {
-          grid-template-columns: 1fr;
-        }
-        .panel-form {
-          border-right: none;
-          border-bottom: 1px solid var(--border);
-        }
-        header {
-          padding: 16px 20px;
-        }
-        .panel-form,
-        .panel-output {
-          padding: 24px 20px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <header>
-      <span class="header-title">Student Performance Risk Predictor</span>
-      <span class="header-tag">Machine Learning · Intervention Tool</span>
-    </header>
-
-    <div class="layout">
-      <!-- ── LEFT: Form ── -->
-      <div class="panel-form">
-        <p class="panel-label">Student Information</p>
-
-        <form id="predict-form" novalidate>
-          <!-- Academic performance -->
-          <div class="section-title">Academic Performance</div>
-
-          <div class="field-group">
-            <div class="field-label">
-              <span class="field-name">First Period Grade (G1)</span>
-              <span class="field-range">0 – 20</span>
-            </div>
-            <p class="field-desc">
-              The student's grade at the end of the first school term, on a 0–20
-              scale.
-            </p>
-            <input
-              type="number"
-              id="G1"
-              min="0"
-              max="20"
-              placeholder="e.g. 11"
-            />
-            <p class="error-msg" id="G1-err">Enter a value between 0 and 20.</p>
-          </div>
-
-          <div class="field-group">
-            <div class="field-label">
-              <span class="field-name">Second Period Grade (G2)</span>
-              <span class="field-range">0 – 20</span>
-            </div>
-            <p class="field-desc">
-              The student's grade at the end of the second term. More recent, so
-              weighted more heavily by the model.
-            </p>
-            <input
-              type="number"
-              id="G2"
-              min="0"
-              max="20"
-              placeholder="e.g. 10"
-            />
-            <p class="error-msg" id="G2-err">Enter a value between 0 and 20.</p>
-          </div>
-
-          <div class="field-grid">
-            <div class="field-group">
-              <div class="field-label">
-                <span class="field-name">Study Time</span>
-                <span class="field-range">1 – 4</span>
-              </div>
-              <p class="field-desc">
-                Hours of study per week.<br />1 = &lt;2h · 2 = 2–5h · 3 = 5–10h
-                · 4 = &gt;10h
-              </p>
-              <input
-                type="number"
-                id="studytime"
-                min="1"
-                max="4"
-                placeholder="1–4"
-              />
-              <p class="error-msg" id="studytime-err">
-                Enter a value between 1 and 4.
-              </p>
-            </div>
-
-            <div class="field-group">
-              <div class="field-label">
-                <span class="field-name">Absences</span>
-                <span class="field-range">0 – 93</span>
-              </div>
-              <p class="field-desc">
-                Total number of school days missed during the year.
-              </p>
-              <input
-                type="number"
-                id="absences"
-                min="0"
-                max="93"
-                placeholder="e.g. 4"
-              />
-              <p class="error-msg" id="absences-err">
-                Enter a value between 0 and 93.
-              </p>
-            </div>
-          </div>
-
-          <div class="field-grid">
-            <div class="field-group">
-              <div class="field-label">
-                <span class="field-name">Past Failures</span>
-                <span class="field-range">1 – 4</span>
-              </div>
-              <p class="field-desc">
-                Number of previously failed classes. 4 means 4 or more.
-              </p>
-              <input
-                type="number"
-                id="failures"
-                min="1"
-                max="4"
-                placeholder="1–4"
-              />
-              <p class="error-msg" id="failures-err">
-                Enter a value between 1 and 4.
-              </p>
-            </div>
-
-            <div class="field-group">
-              <div class="field-label">
-                <span class="field-name">Age</span>
-                <span class="field-range">15+</span>
-              </div>
-              <p class="field-desc">Student's current age in years.</p>
-              <input type="number" id="age" min="15" placeholder="e.g. 17" />
-              <p class="error-msg" id="age-err">Age must be 15 or older.</p>
-            </div>
-          </div>
-
-          <!-- Family background -->
-          <div class="section-title">Family Background</div>
-
-          <div class="field-grid">
-            <div class="field-group">
-              <div class="field-label">
-                <span class="field-name">Mother's Education</span>
-                <span class="field-range">0 – 4</span>
-              </div>
-              <p class="field-desc">
-                0 = none · 1 = primary · 2 = middle school · 3 = secondary · 4 =
-                higher
-              </p>
-              <input
-                type="number"
-                id="Medu"
-                min="0"
-                max="4"
-                placeholder="0–4"
-              />
-              <p class="error-msg" id="Medu-err">
-                Enter a value between 0 and 4.
-              </p>
-            </div>
-
-            <div class="field-group">
-              <div class="field-label">
-                <span class="field-name">Father's Education</span>
-                <span class="field-range">0 – 4</span>
-              </div>
-              <p class="field-desc">
-                0 = none · 1 = primary · 2 = middle school · 3 = secondary · 4 =
-                higher
-              </p>
-              <input
-                type="number"
-                id="Fedu"
-                min="0"
-                max="4"
-                placeholder="0–4"
-              />
-              <p class="error-msg" id="Fedu-err">
-                Enter a value between 0 and 4.
-              </p>
-            </div>
-          </div>
-
-          <!-- Lifestyle -->
-          <div class="section-title">Lifestyle & Logistics</div>
-
-          <div class="field-grid">
-            <div class="field-group">
-              <div class="field-label">
-                <span class="field-name">Travel Time</span>
-                <span class="field-range">1 – 4</span>
-              </div>
-              <p class="field-desc">
-                Time from home to school.<br />1 = &lt;15min · 2 = 15–30min · 3
-                = 30–60min · 4 = &gt;1h
-              </p>
-              <input
-                type="number"
-                id="traveltime"
-                min="1"
-                max="4"
-                placeholder="1–4"
-              />
-              <p class="error-msg" id="traveltime-err">
-                Enter a value between 1 and 4.
-              </p>
-            </div>
-
-            <div class="field-group">
-              <div class="field-label">
-                <span class="field-name">Extra School Support</span>
-              </div>
-              <p class="field-desc">
-                Does the student receive extra educational support from the
-                school?
-              </p>
-              <div class="select-wrap">
-                <select id="schoolsup">
-                  <option value="" disabled selected>Select…</option>
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
-                </select>
-              </div>
-              <p class="error-msg" id="schoolsup-err">
-                Please select an option.
-              </p>
-            </div>
-          </div>
-
-          <div class="field-grid">
-            <div class="field-group">
-              <div class="field-label">
-                <span class="field-name">Workday Alcohol</span>
-                <span class="field-range">1 – 5</span>
-              </div>
-              <p class="field-desc">
-                Alcohol consumption on weekdays.<br />1 = very low · 5 = very
-                high
-              </p>
-              <input
-                type="number"
-                id="Walc"
-                min="1"
-                max="5"
-                placeholder="1–5"
-              />
-              <p class="error-msg" id="Walc-err">
-                Enter a value between 1 and 5.
-              </p>
-            </div>
-
-            <div class="field-group">
-              <div class="field-label">
-                <span class="field-name">Weekend Alcohol</span>
-                <span class="field-range">1 – 5</span>
-              </div>
-              <p class="field-desc">
-                Alcohol consumption on weekends.<br />1 = very low · 5 = very
-                high
-              </p>
-              <input
-                type="number"
-                id="Dalc"
-                min="1"
-                max="5"
-                placeholder="1–5"
-              />
-              <p class="error-msg" id="Dalc-err">
-                Enter a value between 1 and 5.
-              </p>
-            </div>
-          </div>
-
-          <button type="submit" class="btn-predict" id="predict-btn">
-            <div class="spinner"></div>
-            <span class="btn-text">Predict Risk</span>
-          </button>
-        </form>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Risk Predictor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:           #f5f2ec;
+    --surface:      #ffffff;
+    --surface-2:    #f0ece4;
+    --border:       #ddd8cf;
+    --border-dark:  #c8c2b6;
+    --text:         #1a1814;
+    --text-2:       #6b6560;
+    --text-3:       #9e9891;
+    --accent:       #2d5a3d;
+    --accent-light: #e8f0eb;
+    --accent-mid:   #4a8c61;
+    --warn:         #7a3a1e;
+    --warn-light:   #f5e8e2;
+    --warn-mid:     #c4582a;
+    --neutral:      #3a4a5c;
+    --neutral-light:#e5eaf0;
+    --font-serif:   'DM Serif Display', Georgia, serif;
+    --font-sans:    'DM Sans', sans-serif;
+    --font-mono:    'DM Mono', monospace;
+    --radius:       10px;
+    --radius-lg:    16px;
+    --header-h:     61px;
+  }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    background: var(--bg);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  header {
+    flex-shrink: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 40px;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    height: var(--header-h);
+  }
+
+  .header-title { font-family: var(--font-serif); font-size: 20px; color: var(--text); letter-spacing: -0.01em; }
+
+  .header-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text-3);
+    text-transform: uppercase;
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--surface-2);
+  }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* Left: scrollable */
+  .panel-form {
+    padding: 32px 40px;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    height: 100%;
+  }
+
+  /* Right: sticky, no scroll */
+  .panel-output {
+    padding: 32px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .panel-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--text-3);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    flex-shrink: 0;
+  }
+
+  /* ── Metrics strip ── */
+  .metrics-strip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    flex-shrink: 0;
+  }
+
+  .metrics-header {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-2);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: var(--font-mono);
+    margin-bottom: 12px;
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .metric-cell { display: flex; flex-direction: column; gap: 3px; }
+
+  .metric-value {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .metric-label { font-size: 10px; color: var(--text-3); line-height: 1.3; }
+
+  .metrics-per-class {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .per-class-cell { display: flex; flex-direction: column; gap: 4px; }
+
+  .per-class-name {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: var(--font-mono);
+  }
+
+  .per-class-name.at-risk      { color: var(--warn-mid); }
+  .per-class-name.satisfactory { color: var(--neutral); }
+  .per-class-name.excellent    { color: var(--accent-mid); }
+
+  .per-class-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .per-class-stat { font-family: var(--font-mono); font-size: 11px; color: var(--text); }
+  .per-class-stat-label { font-size: 10px; color: var(--text-3); }
+
+  /* ── Form ── */
+  .field-group { margin-bottom: 12px; }
+
+  .field-label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 5px;
+  }
+
+  .field-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .field-range { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); }
+
+  .field-desc { font-size: 12px; color: var(--text-2); margin-bottom: 6px; line-height: 1.45; }
+
+  input[type="number"], select {
+    width: 100%;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--text);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+  }
+
+  input[type="number"]:focus, select:focus {
+    border-color: var(--accent-mid);
+    box-shadow: 0 0 0 3px rgba(74,140,97,0.12);
+  }
+
+  input[type="number"].error, select.error {
+    border-color: var(--warn-mid);
+    box-shadow: 0 0 0 3px rgba(196,88,42,0.1);
+  }
+
+  .error-msg { font-size: 11px; color: var(--warn-mid); margin-top: 4px; display: none; }
+  .error-msg.visible { display: block; }
+
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '';
+    position: absolute;
+    right: 12px; top: 50%;
+    transform: translateY(-50%);
+    width: 0; height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid var(--text-3);
+    pointer-events: none;
+  }
+  .select-wrap select { padding-right: 32px; cursor: pointer; }
+
+  .section-title {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    color: var(--text);
+    margin: 22px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── Button ── */
+  .btn-predict {
+    width: 100%;
+    height: 46px;
+    margin-top: 24px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-predict:hover { background: #234832; }
+  .btn-predict:active { transform: scale(0.99); }
+  .btn-predict:disabled { background: var(--border-dark); cursor: not-allowed; transform: none; }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  .btn-predict.loading .spinner { display: block; }
+  .btn-predict.loading .btn-text { opacity: 0.7; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Output body ── */
+  .output-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .empty-state.hidden { display: none; }
+
+  .empty-icon {
+    width: 52px; height: 52px;
+    border: 1.5px dashed var(--border-dark);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: var(--text-3);
+  }
+
+  .empty-title { font-family: var(--font-serif); font-size: 17px; color: var(--text-2); }
+  .empty-sub { font-size: 12px; color: var(--text-3); max-width: 220px; }
+
+  /* ── Result card ── */
+  .result-card {
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+    animation: fadeUp 0.35s ease;
+  }
+
+  .result-card.visible { display: flex; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .risk-badge {
+    padding: 18px 20px;
+    border-radius: var(--radius-lg);
+    border: 1px solid;
+    flex-shrink: 0;
+  }
+
+  .risk-badge.at-risk      { background: var(--warn-light);    border-color: #e0b8a8; }
+  .risk-badge.satisfactory { background: var(--neutral-light); border-color: #b8c8d8; }
+  .risk-badge.excellent    { background: var(--accent-light);  border-color: #b0ccb8; }
+
+  .badge-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .at-risk .badge-label      { color: var(--warn-mid); }
+  .satisfactory .badge-label { color: var(--neutral); }
+  .excellent .badge-label    { color: var(--accent); }
+
+  .badge-prediction {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+
+  .at-risk .badge-prediction      { color: var(--warn); }
+  .satisfactory .badge-prediction { color: var(--neutral); }
+  .excellent .badge-prediction    { color: var(--accent); }
+
+  .badge-description { font-size: 12px; line-height: 1.5; }
+  .at-risk .badge-description      { color: var(--warn-mid); }
+  .satisfactory .badge-description { color: var(--neutral); }
+  .excellent .badge-description    { color: var(--accent); }
+
+  /* ── Probabilities ── */
+  .prob-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    flex-shrink: 0;
+  }
+
+  .prob-title {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-2);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: var(--font-mono);
+    margin-bottom: 12px;
+  }
+
+  .prob-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .prob-row:last-child { margin-bottom: 0; }
+  .prob-label { font-size: 12px; font-weight: 500; width: 90px; flex-shrink: 0; color: var(--text); }
+
+  .prob-bar-track { flex: 1; height: 5px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+
+  .prob-bar-fill {
+    height: 100%; border-radius: 3px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+  }
+
+  .prob-bar-fill.at-risk      { background: var(--warn-mid); }
+  .prob-bar-fill.satisfactory { background: var(--neutral); }
+  .prob-bar-fill.excellent    { background: var(--accent-mid); }
+
+  .prob-value { font-family: var(--font-mono); font-size: 11px; color: var(--text-2); width: 38px; text-align: right; flex-shrink: 0; }
+
+  /* ── Disclaimer ── */
+  .disclaimer {
+    font-size: 11px;
+    color: var(--text-3);
+    line-height: 1.5;
+    padding: 10px 14px;
+    background: var(--surface-2);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: #2a1a1a; color: #f5d5d5;
+    font-size: 13px;
+    padding: 12px 18px;
+    border-radius: var(--radius);
+    display: none;
+    z-index: 100;
+    max-width: 320px;
+    animation: fadeUp 0.25s ease;
+  }
+  .toast.visible { display: block; }
+
+  /* ── Responsive ── */
+  @media (max-width: 820px) {
+    html, body { overflow: auto; height: auto; }
+
+    .layout {
+      grid-template-columns: 1fr;
+      overflow: visible;
+      height: auto;
+    }
+
+    .panel-form {
+      height: auto;
+      overflow: visible;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      padding: 24px 20px;
+    }
+
+    .panel-output {
+      height: auto;
+      overflow: visible;
+      padding: 24px 20px;
+    }
+
+    header { padding: 16px 20px; }
+    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    .metrics-per-class { grid-template-columns: 1fr; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="header-title">Student Risk Predictor</span>
+  <span class="header-tag">ML · Intervention Tool</span>
+</header>
+
+<div class="layout">
+
+  <!-- ── LEFT: Form ── -->
+  <div class="panel-form">
+    <p class="panel-label">Student Information</p>
+    <form id="predict-form" novalidate>
+
+      <div class="section-title">Academic Performance</div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span class="field-name">First Period Grade (G1)</span>
+          <span class="field-range">0 – 20</span>
+        </div>
+        <p class="field-desc">The student's grade at the end of the first school term, on a 0–20 scale.</p>
+        <input type="number" id="G1" min="0" max="20" placeholder="e.g. 11">
+        <p class="error-msg" id="G1-err">Enter a value between 0 and 20.</p>
       </div>
 
-      <!-- ── RIGHT: Output ── -->
-      <div class="panel-output">
-        <p class="panel-label">Prediction Output</p>
-
-        <div class="empty-state" id="empty-state">
-          <div class="empty-icon">◎</div>
-          <p class="empty-title">No prediction yet</p>
-          <p class="empty-sub">
-            Fill in the student details on the left and click Predict Risk.
-          </p>
+      <div class="field-group">
+        <div class="field-label">
+          <span class="field-name">Second Period Grade (G2)</span>
+          <span class="field-range">0 – 20</span>
         </div>
+        <p class="field-desc">The student's grade at the end of the second term. More recent, so weighted more heavily by the model.</p>
+        <input type="number" id="G2" min="0" max="20" placeholder="e.g. 10">
+        <p class="error-msg" id="G2-err">Enter a value between 0 and 20.</p>
+      </div>
 
-        <div class="result-card" id="result-card">
-          <div class="risk-badge" id="risk-badge">
-            <p class="badge-label" id="badge-label">Predicted Risk Level</p>
-            <p class="badge-prediction" id="badge-prediction">—</p>
-            <p class="badge-description" id="badge-description"></p>
+      <div class="field-group">
+        <div class="field-label">
+          <span class="field-name">Study Time</span>
+          <span class="field-range">1 – 4</span>
+        </div>
+        <p class="field-desc">Hours of study per week. 1 = &lt;2h · 2 = 2–5h · 3 = 5–10h · 4 = &gt;10h</p>
+        <input type="number" id="studytime" min="1" max="4" placeholder="1–4">
+        <p class="error-msg" id="studytime-err">Enter a value between 1 and 4.</p>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span class="field-name">Absences</span>
+          <span class="field-range">0 – 93</span>
+        </div>
+        <p class="field-desc">Total number of school days missed during the year.</p>
+        <input type="number" id="absences" min="0" max="93" placeholder="e.g. 4">
+        <p class="error-msg" id="absences-err">Enter a value between 0 and 93.</p>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span class="field-name">Past Failures</span>
+          <span class="field-range">1 – 4</span>
+        </div>
+        <p class="field-desc">Number of previously failed classes. 4 means 4 or more.</p>
+        <input type="number" id="failures" min="1" max="4" placeholder="1–4">
+        <p class="error-msg" id="failures-err">Enter a value between 1 and 4.</p>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span class="field-name">Age</span>
+          <span class="field-range">15+</span>
+        </div>
+        <p class="field-desc">Student's current age in years.</p>
+        <input type="number" id="age" min="15" placeholder="e.g. 17">
+        <p class="error-msg" id="age-err">Age must be 15 or older.</p>
+      </div>
+
+      <div class="section-title">Family Background</div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span class="field-name">Mother's Education</span>
+          <span class="field-range">0 – 4</span>
+        </div>
+        <p class="field-desc">0 = none · 1 = primary · 2 = middle school · 3 = secondary · 4 = higher</p>
+        <input type="number" id="Medu" min="0" max="4" placeholder="0–4">
+        <p class="error-msg" id="Medu-err">Enter a value between 0 and 4.</p>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span class="field-name">Father's Education</span>
+          <span class="field-range">0 – 4</span>
+        </div>
+        <p class="field-desc">0 = none · 1 = primary · 2 = middle school · 3 = secondary · 4 = higher</p>
+        <input type="number" id="Fedu" min="0" max="4" placeholder="0–4">
+        <p class="error-msg" id="Fedu-err">Enter a value between 0 and 4.</p>
+      </div>
+
+      <div class="section-title">Lifestyle & Logistics</div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span class="field-name">Travel Time</span>
+          <span class="field-range">1 – 4</span>
+        </div>
+        <p class="field-desc">Time from home to school. 1 = &lt;15min · 2 = 15–30min · 3 = 30–60min · 4 = &gt;1h</p>
+        <input type="number" id="traveltime" min="1" max="4" placeholder="1–4">
+        <p class="error-msg" id="traveltime-err">Enter a value between 1 and 4.</p>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span class="field-name">Extra School Support</span>
+        </div>
+        <p class="field-desc">Does the student receive extra educational support from the school?</p>
+        <div class="select-wrap">
+          <select id="schoolsup">
+            <option value="" disabled selected>Select…</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <p class="error-msg" id="schoolsup-err">Please select an option.</p>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span class="field-name">Workday Alcohol Consumption</span>
+          <span class="field-range">1 – 5</span>
+        </div>
+        <p class="field-desc">Alcohol consumption on weekdays. 1 = very low · 5 = very high</p>
+        <input type="number" id="Walc" min="1" max="5" placeholder="1–5">
+        <p class="error-msg" id="Walc-err">Enter a value between 1 and 5.</p>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span class="field-name">Weekend Alcohol Consumption</span>
+          <span class="field-range">1 – 5</span>
+        </div>
+        <p class="field-desc">Alcohol consumption on weekends. 1 = very low · 5 = very high</p>
+        <input type="number" id="Dalc" min="1" max="5" placeholder="1–5">
+        <p class="error-msg" id="Dalc-err">Enter a value between 1 and 5.</p>
+      </div>
+
+      <button type="submit" class="btn-predict" id="predict-btn">
+        <div class="spinner"></div>
+        <span class="btn-text">Predict Risk</span>
+      </button>
+
+    </form>
+  </div>
+
+  <!-- ── RIGHT: Output ── -->
+  <div class="panel-output">
+    <p class="panel-label">Model & Prediction Output</p>
+
+    <!-- Metrics — always visible -->
+    <div class="metrics-strip">
+      <p class="metrics-header">Model Performance</p>
+      <div class="metrics-grid">
+        <div class="metric-cell">
+          <span class="metric-value" id="m-accuracy">—</span>
+          <span class="metric-label">Accuracy</span>
+        </div>
+        <div class="metric-cell">
+          <span class="metric-value" id="m-f1">—</span>
+          <span class="metric-label">Macro F1</span>
+        </div>
+        <div class="metric-cell">
+          <span class="metric-value" id="m-precision">—</span>
+          <span class="metric-label">Macro Precision</span>
+        </div>
+        <div class="metric-cell">
+          <span class="metric-value" id="m-recall">—</span>
+          <span class="metric-label">Macro Recall</span>
+        </div>
+      </div>
+      <div class="metrics-per-class">
+        <div class="per-class-cell">
+          <span class="per-class-name at-risk">At Risk</span>
+          <div class="per-class-row">
+            <span class="per-class-stat" id="pc-atrisk-p">—</span>
+            <span class="per-class-stat-label">P</span>
+            <span class="per-class-stat" id="pc-atrisk-r">—</span>
+            <span class="per-class-stat-label">R</span>
+            <span class="per-class-stat" id="pc-atrisk-f">—</span>
+            <span class="per-class-stat-label">F1</span>
           </div>
-
-          <div class="prob-section">
-            <p class="prob-title">Class Probabilities</p>
-
-            <div class="prob-row">
-              <span class="prob-label">At Risk</span>
-              <div class="prob-bar-track">
-                <div class="prob-bar-fill at-risk" id="bar-at-risk"></div>
-              </div>
-              <span class="prob-value" id="val-at-risk">—</span>
-            </div>
-
-            <div class="prob-row">
-              <span class="prob-label">Satisfactory</span>
-              <div class="prob-bar-track">
-                <div
-                  class="prob-bar-fill satisfactory"
-                  id="bar-satisfactory"
-                ></div>
-              </div>
-              <span class="prob-value" id="val-satisfactory">—</span>
-            </div>
-
-            <div class="prob-row">
-              <span class="prob-label">Excellent</span>
-              <div class="prob-bar-track">
-                <div class="prob-bar-fill excellent" id="bar-excellent"></div>
-              </div>
-              <span class="prob-value" id="val-excellent">—</span>
-            </div>
+        </div>
+        <div class="per-class-cell">
+          <span class="per-class-name satisfactory">Satisfactory</span>
+          <div class="per-class-row">
+            <span class="per-class-stat" id="pc-sat-p">—</span>
+            <span class="per-class-stat-label">P</span>
+            <span class="per-class-stat" id="pc-sat-r">—</span>
+            <span class="per-class-stat-label">R</span>
+            <span class="per-class-stat" id="pc-sat-f">—</span>
+            <span class="per-class-stat-label">F1</span>
           </div>
-
-          <div class="disclaimer">
-            This prediction is generated by a machine learning model trained on
-            historical student data. It is intended as a support tool for
-            educators — not a definitive assessment. Always combine model output
-            with direct knowledge of the student's context.
+        </div>
+        <div class="per-class-cell">
+          <span class="per-class-name excellent">Excellent</span>
+          <div class="per-class-row">
+            <span class="per-class-stat" id="pc-exc-p">—</span>
+            <span class="per-class-stat-label">P</span>
+            <span class="per-class-stat" id="pc-exc-r">—</span>
+            <span class="per-class-stat-label">R</span>
+            <span class="per-class-stat" id="pc-exc-f">—</span>
+            <span class="per-class-stat-label">F1</span>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="toast" id="toast"></div>
+    <!-- Prediction -->
+    <div class="output-body">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">◎</div>
+        <p class="empty-title">No prediction yet</p>
+        <p class="empty-sub">Fill in the student details on the left and click Predict Risk.</p>
+      </div>
 
-    <script>
-      const DESCRIPTIONS = {
-        "At Risk":
-          "This student shows signs that may require early intervention. Consider reaching out to discuss academic support options.",
-        Satisfactory:
-          "This student is performing within an acceptable range. Continue monitoring and encourage consistent study habits.",
-        Excellent:
-          "This student is on track for strong academic performance. Encourage continued effort and consider enrichment opportunities.",
-      };
+      <div class="result-card" id="result-card">
+        <div class="risk-badge" id="risk-badge">
+          <p class="badge-label">Predicted Risk Level</p>
+          <p class="badge-prediction" id="badge-prediction">—</p>
+          <p class="badge-description" id="badge-description"></p>
+        </div>
 
-      const CLASS_MAP = {
-        "At Risk": "at-risk",
-        Satisfactory: "satisfactory",
-        Excellent: "excellent",
-      };
+        <div class="prob-section">
+          <p class="prob-title">Class Probabilities</p>
+          <div class="prob-row">
+            <span class="prob-label">At Risk</span>
+            <div class="prob-bar-track"><div class="prob-bar-fill at-risk" id="bar-at-risk"></div></div>
+            <span class="prob-value" id="val-at-risk">—</span>
+          </div>
+          <div class="prob-row">
+            <span class="prob-label">Satisfactory</span>
+            <div class="prob-bar-track"><div class="prob-bar-fill satisfactory" id="bar-satisfactory"></div></div>
+            <span class="prob-value" id="val-satisfactory">—</span>
+          </div>
+          <div class="prob-row">
+            <span class="prob-label">Excellent</span>
+            <div class="prob-bar-track"><div class="prob-bar-fill excellent" id="bar-excellent"></div></div>
+            <span class="prob-value" id="val-excellent">—</span>
+          </div>
+        </div>
 
-      // ── Validation rules ──
-      const FIELDS = [
-        { id: "G1", min: 0, max: 20, type: "number" },
-        { id: "G2", min: 0, max: 20, type: "number" },
-        { id: "studytime", min: 1, max: 4, type: "number" },
-        { id: "absences", min: 0, max: 93, type: "number" },
-        { id: "failures", min: 1, max: 4, type: "number" },
-        { id: "age", min: 15, max: null, type: "number" },
-        { id: "Medu", min: 0, max: 4, type: "number" },
-        { id: "Fedu", min: 0, max: 4, type: "number" },
-        { id: "traveltime", min: 1, max: 4, type: "number" },
-        { id: "Walc", min: 1, max: 5, type: "number" },
-        { id: "Dalc", min: 1, max: 5, type: "number" },
-        { id: "schoolsup", type: "select" },
-      ];
+        <div class="disclaimer">
+          This prediction is generated by a machine learning model trained on historical student data. It is intended as a support tool for educators — not a definitive assessment. Always combine model output with direct knowledge of the student's context.
+        </div>
+      </div>
+    </div>
 
-      function validateField(field) {
-        const el = document.getElementById(field.id);
-        const errEl = document.getElementById(field.id + "-err");
-        let valid = true;
+  </div>
+</div>
 
-        if (field.type === "select") {
-          valid = el.value !== "";
-        } else {
-          const val = el.value.trim();
-          if (val === "") {
-            valid = false;
-          } else {
-            const num = Number(val);
-            if (isNaN(num)) valid = false;
-            else if (field.min !== null && num < field.min) valid = false;
-            else if (field.max !== null && num > field.max) valid = false;
-          }
-        }
+<div class="toast" id="toast"></div>
 
-        el.classList.toggle("error", !valid);
-        if (errEl) errEl.classList.toggle("visible", !valid);
-        return valid;
+<script>
+  const DESCRIPTIONS = {
+    "At Risk":       "This student shows signs that may require early intervention. Consider reaching out to discuss academic support options.",
+    "Satisfactory":  "This student is performing within an acceptable range. Continue monitoring and encourage consistent study habits.",
+    "Excellent":     "This student is on track for strong academic performance. Encourage continued effort and consider enrichment opportunities."
+  };
+
+  const CLASS_MAP = {
+    "At Risk": "at-risk",
+    "Satisfactory": "satisfactory",
+    "Excellent": "excellent"
+  };
+
+  const FIELDS = [
+    { id: "G1",         min: 0,  max: 20,  type: "number" },
+    { id: "G2",         min: 0,  max: 20,  type: "number" },
+    { id: "studytime",  min: 1,  max: 4,   type: "number" },
+    { id: "absences",   min: 0,  max: 93,  type: "number" },
+    { id: "failures",   min: 1,  max: 4,   type: "number" },
+    { id: "age",        min: 15, max: null, type: "number" },
+    { id: "Medu",       min: 0,  max: 4,   type: "number" },
+    { id: "Fedu",       min: 0,  max: 4,   type: "number" },
+    { id: "traveltime", min: 1,  max: 4,   type: "number" },
+    { id: "schoolsup",  type: "select" },
+    { id: "Walc",       min: 1,  max: 5,   type: "number" },
+    { id: "Dalc",       min: 1,  max: 5,   type: "number" },
+  ];
+
+  // ── Fetch metrics on load ──
+  async function loadMetrics() {
+    try {
+      const res = await fetch("/metrics");
+      const m = await res.json();
+
+      document.getElementById("m-accuracy").textContent  = m.accuracy.toFixed(2);
+      document.getElementById("m-f1").textContent        = m.macro_f1.toFixed(2);
+      document.getElementById("m-precision").textContent = m.macro_precision.toFixed(2);
+      document.getElementById("m-recall").textContent    = m.macro_recall.toFixed(2);
+
+      const ar  = m.per_class["At Risk"];
+      const sat = m.per_class["Satisfactory"];
+      const exc = m.per_class["Excellent"];
+
+      document.getElementById("pc-atrisk-p").textContent = ar.precision.toFixed(2);
+      document.getElementById("pc-atrisk-r").textContent = ar.recall.toFixed(2);
+      document.getElementById("pc-atrisk-f").textContent = ar.f1.toFixed(2);
+
+      document.getElementById("pc-sat-p").textContent = sat.precision.toFixed(2);
+      document.getElementById("pc-sat-r").textContent = sat.recall.toFixed(2);
+      document.getElementById("pc-sat-f").textContent = sat.f1.toFixed(2);
+
+      document.getElementById("pc-exc-p").textContent = exc.precision.toFixed(2);
+      document.getElementById("pc-exc-r").textContent = exc.recall.toFixed(2);
+      document.getElementById("pc-exc-f").textContent = exc.f1.toFixed(2);
+
+    } catch (e) {
+      console.warn("Could not load metrics:", e);
+    }
+  }
+
+  loadMetrics();
+
+  // ── Validation ──
+  function validateField(field) {
+    const el = document.getElementById(field.id);
+    const errEl = document.getElementById(field.id + "-err");
+    let valid = true;
+
+    if (field.type === "select") {
+      valid = el.value !== "";
+    } else {
+      const val = el.value.trim();
+      if (val === "") valid = false;
+      else {
+        const num = Number(val);
+        if (isNaN(num)) valid = false;
+        else if (field.min !== null && num < field.min) valid = false;
+        else if (field.max !== null && num > field.max) valid = false;
       }
+    }
 
-      function validateAll() {
-        return FIELDS.map(validateField).every(Boolean);
-      }
+    el.classList.toggle("error", !valid);
+    if (errEl) errEl.classList.toggle("visible", !valid);
+    return valid;
+  }
 
-      // Live validation on blur
-      FIELDS.forEach((field) => {
-        const el = document.getElementById(field.id);
-        if (el) el.addEventListener("blur", () => validateField(field));
+  function validateAll() {
+    return FIELDS.map(validateField).every(Boolean);
+  }
+
+  FIELDS.forEach(field => {
+    const el = document.getElementById(field.id);
+    if (el) el.addEventListener("blur", () => validateField(field));
+  });
+
+  // ── Submit ──
+  document.getElementById("predict-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!validateAll()) return;
+
+    const btn = document.getElementById("predict-btn");
+    btn.classList.add("loading");
+    btn.disabled = true;
+
+    const payload = {};
+    FIELDS.forEach(f => {
+      const el = document.getElementById(f.id);
+      payload[f.id] = f.type === "select" ? el.value : Number(el.value);
+    });
+
+    try {
+      const res = await fetch("/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
       });
 
-      // ── Submit ──
-      document
-        .getElementById("predict-form")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-          if (!validateAll()) return;
-
-          const btn = document.getElementById("predict-btn");
-          btn.classList.add("loading");
-          btn.disabled = true;
-
-          const payload = {};
-          FIELDS.forEach((f) => {
-            const el = document.getElementById(f.id);
-            payload[f.id] = f.type === "select" ? el.value : Number(el.value);
-          });
-
-          try {
-            const res = await fetch("/predict", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            });
-
-            if (!res.ok) {
-              const err = await res.json();
-              throw new Error(err.detail || "Prediction failed.");
-            }
-
-            const data = await res.json();
-            showResult(data);
-          } catch (err) {
-            showToast(err.message || "Something went wrong. Please try again.");
-          } finally {
-            btn.classList.remove("loading");
-            btn.disabled = false;
-          }
-        });
-
-      function showResult(data) {
-        const prediction = data.prediction;
-        const probabilities = data.probabilities;
-        const cls = CLASS_MAP[prediction] || "satisfactory";
-
-        // Badge
-        const badge = document.getElementById("risk-badge");
-        badge.className = "risk-badge " + cls;
-        document.getElementById("badge-prediction").textContent = prediction;
-        document.getElementById("badge-description").textContent =
-          DESCRIPTIONS[prediction] || "";
-
-        // Probability bars — reset first then animate
-        const keys = {
-          "At Risk": "at-risk",
-          Satisfactory: "satisfactory",
-          Excellent: "excellent",
-        };
-        Object.entries(keys).forEach(([label, cssKey]) => {
-          const pct = ((probabilities[label] || 0) * 100).toFixed(1);
-          document.getElementById("bar-" + cssKey).style.width = "0%";
-          document.getElementById("val-" + cssKey).textContent = pct + "%";
-        });
-
-        // Trigger animation after reset
-        requestAnimationFrame(() =>
-          requestAnimationFrame(() => {
-            Object.entries(keys).forEach(([label, cssKey]) => {
-              const pct = ((probabilities[label] || 0) * 100).toFixed(1);
-              document.getElementById("bar-" + cssKey).style.width = pct + "%";
-            });
-          }),
-        );
-
-        // Show result, hide empty state
-        document.getElementById("empty-state").classList.add("hidden");
-        const card = document.getElementById("result-card");
-        card.classList.remove("visible");
-        void card.offsetWidth; // force reflow for re-animation
-        card.classList.add("visible");
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Prediction failed.");
       }
 
-      function showToast(msg) {
-        const toast = document.getElementById("toast");
-        toast.textContent = msg;
-        toast.classList.add("visible");
-        setTimeout(() => toast.classList.remove("visible"), 4000);
-      }
-    </script>
-  </body>
+      const data = await res.json();
+      showResult(data);
+
+    } catch (err) {
+      showToast(err.message || "Something went wrong. Please try again.");
+    } finally {
+      btn.classList.remove("loading");
+      btn.disabled = false;
+    }
+  });
+
+  function showResult(data) {
+    const prediction  = data.prediction;
+    const probabilities = data.probabilities;
+    const cls = CLASS_MAP[prediction] || "satisfactory";
+
+    const badge = document.getElementById("risk-badge");
+    badge.className = "risk-badge " + cls;
+    document.getElementById("badge-prediction").textContent  = prediction;
+    document.getElementById("badge-description").textContent = DESCRIPTIONS[prediction] || "";
+
+    const keys = { "At Risk": "at-risk", "Satisfactory": "satisfactory", "Excellent": "excellent" };
+
+    // Reset bars
+    Object.values(keys).forEach(cssKey => {
+      document.getElementById("bar-" + cssKey).style.width = "0%";
+    });
+
+    // Set values
+    Object.entries(keys).forEach(([label, cssKey]) => {
+      document.getElementById("val-" + cssKey).textContent = ((probabilities[label] || 0) * 100).toFixed(1) + "%";
+    });
+
+    // Animate bars
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      Object.entries(keys).forEach(([label, cssKey]) => {
+        const pct = ((probabilities[label] || 0) * 100).toFixed(1);
+        document.getElementById("bar-" + cssKey).style.width = pct + "%";
+      });
+    }));
+
+    document.getElementById("empty-state").classList.add("hidden");
+    const card = document.getElementById("result-card");
+    card.classList.remove("visible");
+    void card.offsetWidth;
+    card.classList.add("visible");
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.classList.add("visible");
+    setTimeout(() => toast.classList.remove("visible"), 4000);
+  }
+</script>
+</body>
 </html>
