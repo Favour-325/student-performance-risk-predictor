@@ -1,5 +1,6 @@
 import io
 import boto3
+from botocore.exceptions import NoCredentialsError
 import joblib
 import numpy as np
 import pandas as pd
@@ -11,7 +12,7 @@ from fastapi.responses import FileResponse
 from .schema import StudentInput
 
 
-S3_BUCKET = "student-risk-predictor-models"
+S3_BUCKET = "student-performance-risk-predictor"
 S3_KEY    = "gradient_boosting"
 CLASS_LABELS = ["At Risk", "Satisfactory", "Excellent"]
 AT_RISK_THRESHOLD = 0.41
@@ -27,12 +28,16 @@ app.add_middleware(
 )
 
 
-# Load model from S3 at startup
-s3 = boto3.client("s3")
-buffer = io.BytesIO()
-s3.download_fileobj(S3_BUCKET, S3_KEY, buffer)
-buffer.seek(0)
-model = joblib.load(buffer)
+# Load model from S3 at startup when running in the EC2 instance and load from ml_models directory when running locally
+try:
+    s3 = boto3.client("s3")
+    buffer = io.BytesIO()
+    s3.download_fileobj(S3_BUCKET, S3_KEY, buffer)
+    buffer.seek(0)
+    model = joblib.load(buffer)
+
+except NoCredentialsError:
+    model = joblib.load('app/ml_models/gradient_boosting')
 
 
 MODEL_METRICS = {

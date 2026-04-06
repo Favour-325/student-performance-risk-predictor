@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Student Risk Predictor</title>
+<title>Student Performance Risk Predictor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -53,7 +53,7 @@
     border-bottom: 1px solid var(--border);
     padding: 18px 40px;
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 16px;
     height: var(--header-h);
   }
@@ -454,7 +454,7 @@
       padding: 24px 20px;
     }
 
-    header { padding: 16px 20px; }
+    header { padding: 16px 20px;  }
     .metrics-grid { grid-template-columns: repeat(2, 1fr); }
     .metrics-per-class { grid-template-columns: 1fr; gap: 10px; }
   }
@@ -463,8 +463,8 @@
 <body>
 
 <header>
-  <span class="header-title">Student Risk Predictor</span>
-  <span class="header-tag">ML · Intervention Tool</span>
+  <div class="header-title">Student Performance Risk Predictor</div>
+  <div class="header-tag">Machine Learning · Intervention Tool</div>
 </header>
 
 <div class="layout">
@@ -479,7 +479,7 @@
       <div class="field-group">
         <div class="field-label">
           <span class="field-name">First Period Grade (G1)</span>
-          <span class="field-range">0 – 20</span>
+          <span class="field-range">0 – 20 (Integer Only)</span>
         </div>
         <p class="field-desc">The student's grade at the end of the first school term, on a 0–20 scale.</p>
         <input type="number" id="G1" min="0" max="20" placeholder="e.g. 11">
@@ -489,7 +489,7 @@
       <div class="field-group">
         <div class="field-label">
           <span class="field-name">Second Period Grade (G2)</span>
-          <span class="field-range">0 – 20</span>
+          <span class="field-range">0 – 20 (Integer Only)</span>
         </div>
         <p class="field-desc">The student's grade at the end of the second term. More recent, so weighted more heavily by the model.</p>
         <input type="number" id="G2" min="0" max="20" placeholder="e.g. 10">
